@@ -9,8 +9,7 @@ from django.views.generic import (
     UpdateView,
     DeleteView
 )
-from .models import Post, Postu
-import operator
+from .models import Post
 from django.urls import reverse_lazy
 from django.contrib.staticfiles.views import serve
 
@@ -23,7 +22,16 @@ def home(request):
     }
     return render(request, 'blog/home.html', context)
 
+def search(request):
+    template='blog/home.html'
 
+    query=request.GET.get('q')
+
+    result=Post.objects.filter(Q(title__icontains=query) | Q(author__username__icontains=query) | Q(content__icontains=query))
+    paginate_by=2
+    context={ 'posts':result }
+    return render(request,template,context)
+   
 
 
 def getfile(request):
@@ -31,7 +39,8 @@ def getfile(request):
 
 
 class PostListView(ListView):
-    model = Postu
+ 
+    model = Post
     template_name = 'blog/home.html'  # <app>/<model>_<viewtype>.html
     context_object_name = 'posts'
     ordering = ['-date_posted'] 
@@ -53,27 +62,17 @@ class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
 
-class PostDetailViewu(DetailView):
-    model = Postu
-    template_name = 'blog/post_detailu.html'
+
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     template_name = 'blog/post_form.html'
-    fields = ['title', 'content', 'file']
+    fields = ['title', 'content', 'file', 'private']
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
-class PostCreateViewu(LoginRequiredMixin, CreateView):
-    model = Postu
-    template_name = 'blog/post_formu.html'
-    fields = ['title', 'content', 'file']
-
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -91,20 +90,6 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             return True
         return False
 
-class PostUpdateViewu(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = Postu
-    template_name = 'blog/post_formu.html'
-    fields = ['title', 'content', 'file']
-
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
-
-    def test_func(self):
-        post = self.get_object()
-        if self.request.user == post.author:
-            return True
-        return False
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
@@ -117,18 +102,7 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
             return True
         return False
 
-class PostDeleteViewu(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = Postu
-    success_url = '/'
-    template_name = 'blog/post_confirm_deleteu.html'
-
-    def test_func(self):
-        post = self.get_object()
-        if self.request.user == post.author:
-            return True
-        return False
 
 
 
-def about(request):
-    return render(request, 'blog/about.html', {'title': 'About'})
+

@@ -1,6 +1,7 @@
 {% extends "blog/base.html" %}
 {% block content %}
     {% for post in posts %}
+      {% if post.private == False %}
       <div class="jumbotron mt-3 bg-white shadow-lg">
       <article class="media content-section shadow">
         <a href="{{ post.author.profile.image.url }} " target="_blank"> <img src="{{ post.author.profile.image.url }}  " alt="" class="article-img rounded-circle img-thumbnail img-fluid shadow">
@@ -16,7 +17,7 @@
      
       
      
-          <h2><a class="article-title text-justify " href="{% url 'post-detailu' post.id %}">{{ post.title }}</a></h2>
+          <h2><a class="article-title text-justify " href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
           <div class="d-flex justify-content-between">
             <p class="article-content text-justify text-truncate overflow-hidden">{{ post.content }}</p>
             {% if post.file %}
@@ -29,7 +30,8 @@
       
         </div>
       </article>
-      </div>   
+      </div> 
+      {% endif %}  
     {% endfor %}
     {% if is_paginated %}
 
